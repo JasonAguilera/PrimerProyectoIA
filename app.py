@@ -42,7 +42,10 @@ def predict():
         return jsonify({"resultado": resultado})
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({
+            "error": str(e),
+            "mensaje": "fallo en predict"
+            }), 400
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
