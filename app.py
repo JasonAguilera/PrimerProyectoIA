@@ -1,3 +1,11 @@
+from supabase import create_client
+import os
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 from flask import Flask, request, jsonify
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -18,10 +26,23 @@ def home():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    data = request.json
-    horas = data["horas"]
-    pred = modelo.predict([[horas]])
-    return jsonify({"resultado": float(pred[0])})
+    try:
+        data = request.get_json()
+        horas = data.get("horas")
+
+        pred = modelo.predict([[horas]])
+        resultado = float(pred[0])
+
+        
+        supabase.table("predicciones").insert({
+            "horas": horas,
+            "resultado": resultado
+        }).execute()
+
+        return jsonify({"resultado": resultado})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
